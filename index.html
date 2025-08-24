@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🧙‍♂️ Hogwarts House Sorter</title>
+<!-- Custom Fonts for a magical feel -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel&family=MedievalSharp&display=swap" rel="stylesheet" />
+<style>
+  /* --- CSS Variables for Colors and Fonts --- */
+  :root {
+    --color-dark-bg: #0d0d0d;
+    --color-light-bg: #1a1a1a;
+    --color-gold: #c5a900;
+    --color-gold-light: #ffd95b;
+    --color-light-text: #eee;
+    --color-dim-text: #bbb;
+    --color-white: #fff;
+    --font-primary: 'Cinzel', serif;
+    --font-secondary: 'MedievalSharp', cursive;
+
+    /* House Colors */
+    --color-gryffindor: #ff2400;
+    --color-hufflepuff: #fff700;
+    --color-ravenclaw: #00bfff;
+    --color-slytherin: #32cd32;
+  }
+
+  /* --- Base Styles --- */
+  body {
+    margin: 0;
+    padding: 2rem;
+    background: radial-gradient(circle at center, var(--color-light-bg), var(--color-dark-bg));
+    color: var(--color-light-text);
+    font-family: var(--font-primary);
+    text-align: center;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 8vw, 3rem);
+    margin-bottom: 0.2rem;
+    color: var(--color-gold);
+    text-shadow: 0 0 5px var(--color-gold-light);
+  }
+
+  h2 {
+    font-family: var(--font-secondary);
+    margin-bottom: 2rem;
+    font-size: clamp(1rem, 4vw, 1.3rem);
+    color: var(--color-dim-text);
+  }
+
+  /* --- Form & Inputs --- */
+  form {
+    background: rgba(20, 20, 20, 0.85);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 0 20px var(--color-gold);
+    width: clamp(280px, 80vw, 400px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  label {
+    display: block;
+    margin: 1rem 0 0.4rem;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--color-gold-light);
+  }
+
+  input[type="file"] {
+    margin-bottom: 1rem;
+    color: var(--color-dim-text);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  select {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: none;
+    background: #222;
+    color: var(--color-gold-light);
+    box-sizing: border-box;
+    cursor: pointer;
+  }
+
+  /* --- Button & Loading Indicator --- */
+  .button-container {
+    margin-top: 2rem;
+  }
+
+  button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-light-bg);
+    background: var(--color-gold-light);
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--color-gold-light);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  button:hover {
+    box-shadow: 0 0 20px var(--color-white);
+    transform: scale(1.05);
+  }
+  
+  #sortingLoading {
+    font-size: 1.5rem;
+    color: var(--color-gold-light);
+    padding: 0.75rem 1.5rem;
+  }
+
+  /* Sorting Hat icon and animation */
+  .sorting-hat-icon {
+    display: inline-block;
+    animation: sort-hat 1.5s infinite ease-in-out;
+  }
+  
+  .sorting-spin {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes sort-hat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* --- Result Section --- */
+  #resultWrapper {
+    margin-top: 3rem;
+    display: none; /* Initially hidden, will be shown after sorting */
+    flex-direction: column;
+    gap: 2rem;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    border-radius: 12px;
+  }
+
+  #result {
+    font-size: 2rem;
+    font-weight: 700;
+    min-height: 60px;
+    text-shadow: 0 0 10px var(--color-gold-light);
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    min-width: 250px;
+  }
+
+  #resultImage {
+    max-width: 250px;
+    max-height: 300px;
+    border-radius: 12px;
+    box-shadow: 0 0 25px var(--color-gold);
+    border: 4px solid transparent;
+    object-fit: cover;
+  }
+  
+  /* Message Box for errors/info */
+  #messageBox {
+    margin-top: 1rem;
+    color: var(--color-gold-light);
+    font-family: var(--font-secondary);
+  }
+
+  /* House-specific styles for results */
+  .Gryffindor { color: var(--color-gryffindor); }
+  .Gryffindor.glow {
+    text-shadow: 0 0 10px var(--color-gryffindor), 0 0 20px var(--color-gryffindor);
+    box-shadow: 0 0 25px var(--color-gryffindor), 0 0 40px var(--color-gryffindor);
+    border-color: var(--color-gryffindor);
+  }
+
+  .Hufflepuff { color: var(--color-hufflepuff); }
+  .Hufflepuff.glow {
+    text-shadow: 0 0 10px var(--color-hufflepuff), 0 0 20px var(--color-hufflepuff);
+    box-shadow: 0 0 25px var(--color-hufflepuff), 0 0 40px var(--color-hufflepuff);
+    border-color: var(--color-hufflepuff);
+  }
+
+  .Ravenclaw { color: var(--color-ravenclaw); }
+  .Ravenclaw.glow {
+    text-shadow: 0 0 10px var(--color-ravenclaw), 0 0 20px var(--color-ravenclaw);
+    box-shadow: 0 0 25px var(--color-ravenclaw), 0 0 40px var(--color-ravenclaw);
+    border-color: var(--color-ravenclaw);
+  }
+
+  .Slytherin { color: var(--color-slytherin); }
+  .Slytherin.glow {
+    text-shadow: 0 0 10px var(--color-slytherin), 0 0 20px var(--color-slytherin);
+    box-shadow: 0 0 25px var(--color-slytherin), 0 0 40px var(--color-slytherin);
+    border-color: var(--color-slytherin);
+  }
+</style>
+</head>
+<body>
+
+<h1>🧙‍♂️ Hogwarts House Sorter</h1>
+<h2>Upload your photo, answer the quiz, and let the Sorting Hat decide!</h2>
+
+<form id="sortingForm">
+  <label for="imageUpload">Upload your wizard portrait</label>
+  <input type="file" id="imageUpload" accept="image/*" />
+
+  <label for="trait1">Choose your favorite magical subject</label>
+  <select id="trait1" required>
+    <option value="" disabled selected>Select one</option>
+    <option value="bravery">Defense Against the Dark Arts</option>
+    <option value="patience">Herbology</option>
+    <option value="wisdom">Charms</option>
+    <option value="cunning">Potions</option>
+  </select>
+
+  <label for="trait2">Pick a magical creature</label>
+  <select id="trait2" required>
+    <option value="" disabled selected>Select one</option>
+    <option value="bravery">Phoenix</option>
+    <option value="patience">Niffler</option>
+    <option value="wisdom">Raven</option>
+    <option value="cunning">Basilisk</option>
+  </select>
+
+  <label for="trait3">Which quality best describes you?</label>
+  <select id="trait3" required>
+    <option value="" disabled selected>Select one</option>
+    <option value="bravery">Bravery</option>
+    <option value="patience">Patience</option>
+    <option value="wisdom">Wisdom</option>
+    <option value="cunning">Cunning</option>
+  </select>
+
+  <div class="button-container">
+    <button type="submit" id="sortButton">
+      Sort Me!
+      <span class="sorting-hat-icon">🎩</span>
+    </button>
+    <div id="sortingLoading" style="display: none;">
+      <span class="sorting-hat-icon sorting-spin">🎩</span>
+    </div>
+  </div>
+  
+  <div id="messageBox"></div>
+</form>
+
+<div id="resultWrapper" aria-live="polite">
+  <div id="result"></div>
+  <img id="resultImage" alt="Uploaded wizard portrait" />
+  <button id="tryAgainButton">Try Again</button>
+</div>
+
+<script>
+  // A mapping of traits to houses to calculate scores
+  const traitHouseMapping = {
+    bravery: 'Gryffindor',
+    patience: 'Hufflepuff',
+    wisdom: 'Ravenclaw',
+    cunning: 'Slytherin',
+  };
+
+  const form = document.getElementById('sortingForm');
+  const messageBox = document.getElementById('messageBox');
+  const resultWrapper = document.getElementById('resultWrapper');
+  const result = document.getElementById('result');
+  const resultImage = document.getElementById('resultImage');
+  const fileInput = document.getElementById('imageUpload');
+  const tryAgainButton = document.getElementById('tryAgainButton');
+  const sortButton = document.getElementById('sortButton');
+  const sortingLoading = document.getElementById('sortingLoading');
+
+  // Function to show messages to the user without using alert()
+  function showMessage(text) {
+    messageBox.textContent = text;
+  }
+
+  // Event listener for form submission
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    // Reset previous results and messages
+    resultWrapper.style.display = 'none';
+    result.textContent = '';
+    resultImage.style.display = 'none';
+    showMessage('');
+
+    // Check if all fields are filled
+    const trait1 = form.trait1.value;
+    const trait2 = form.trait2.value;
+    const trait3 = form.trait3.value;
+
+    if (!trait1 || !trait2 || !trait3) {
+      showMessage('Please answer all questions before sorting.');
+      return;
+    }
+
+    // Hide the form and show the sorting message
+    form.style.display = 'none';
+    
+    // Show the loading indicator
+    sortButton.style.display = 'none';
+    sortingLoading.style.display = 'block';
+
+    showMessage('Sorting... 🪄');
+    
+    // Use a small delay to allow the "Sorting..." message to display
+    setTimeout(() => {
+      // Calculate scores for each house
+      const scores = {
+        Gryffindor: 0,
+        Hufflepuff: 0,
+        Ravenclaw: 0,
+        Slytherin: 0,
+      };
+
+      scores[traitHouseMapping[trait1]]++;
+      scores[traitHouseMapping[trait2]]++;
+      scores[traitHouseMapping[trait3]]++;
+
+      // Find the house with the highest score
+      let winningHouse = 'Gryffindor'; // Default to Gryffindor
+      let maxScore = 0;
+      for (const house in scores) {
+        if (scores[house] > maxScore) {
+          maxScore = scores[house];
+          winningHouse = house;
+        } else if (scores[house] === maxScore) {
+          // Handle a tie by randomly picking between the tied houses
+          const tiedHouses = [winningHouse, house];
+          winningHouse = tiedHouses[Math.floor(Math.random() * tiedHouses.length)];
+        }
+      }
+
+      // Hide the loading indicator
+      sortingLoading.style.display = 'none';
+      
+      // Display the results
+      result.textContent = `You belong to ${winningHouse}! ✨`;
+      result.className = `${winningHouse} glow`;
+      
+      // Handle the uploaded image
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const imageUrl = URL.createObjectURL(file);
+        resultImage.src = imageUrl;
+        resultImage.alt = `Your wizard portrait sorted into ${winningHouse}`;
+        resultImage.className = `${winningHouse} glow`;
+        resultImage.style.display = 'block';
+      }
+
+      // Make the entire result section visible
+      resultWrapper.style.display = 'flex';
+      showMessage('');
+    }, 500); // Increased delay to 3 seconds for better visibility
+  });
+
+  // Event listener for the "Try Again" button to reload the page and reset
+  tryAgainButton.addEventListener('click', () => {
+    window.location.reload();
+  });
+</script>
+
+</body>
+</html>
