@@ -54,6 +54,8 @@ To run this application, you will need a simple web server. This is necessary fo
 
     You should now see the Hogwarts House Sorter app ready to go!
 
+<img width="830" height="820" alt="image" src="https://github.com/user-attachments/assets/60f93704-d947-4c7b-8ebb-a8e52203d434" />
+
 ## Notes
 
 * The server will run as long as your terminal window is open. To stop the server, press `Ctrl + C` in the terminal.
